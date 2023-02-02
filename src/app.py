@@ -109,29 +109,35 @@ def add_new_user():
     results.append(request_body)
     return jsonify(results), 200
 
-@app.route('/user/<int:user_id>/favorites/planets/<int:planet_id>', methods=['POST'])
-def add_new_fav_planet(user_id, planet_id):
+@app.route('/user/<int:user_id>/favorites/planets', methods=['POST'])
+def add_new_fav_planet(user_id):
 
-    planets = Planets.query.filter_by(id=planet_id).first()
-    users = User.query.filter_by(id=user_id).first()
-    favorites = Favorites(user_id=users.id, planets_id=planets.id)
+    request_body = request.json
 
-    db.session.add(favorites)
-    db.session.commit()
+    fav_planets = Favorites.query.filter_by(user_id=user_id,planets_id=request_body["planets_id"]).first()
+    fav_planet = Favorites(user_id=user_id, planets_id=request_body["planets_id"])
 
-    return jsonify(favorites.serialize()), 200
+    if fav_planets is None:
+        db.session.add(fav_planet)
+        db.session.commit()
+        return jsonify(fav_planet.serialize()), 200
 
-@app.route('/user/<int:user_id>/favorites/characters/<int:characters_id>', methods=['POST'])
-def add_new_fav_character(user_id, characters_id):
+    return jsonify({"msg":"El usuario seleccionado ya tiene ese favorito"}),404
+
+@app.route('/user/<int:user_id>/favorites/characters', methods=['POST'])
+def add_new_fav_character(user_id):
     
-    characters = Characters.query.filter_by(id=characters_id).first()
-    users = User.query.filter_by(id=user_id).first()
-    favorites = Favorites(user_id=users.id, characters_id=characters.id)
+    request_body = request.json
 
-    db.session.add(favorites)
-    db.session.commit()
+    fav_characters = Favorites.query.filter_by(user_id=user_id,characters_id=request_body["characters_id"]).first()
+    fav_character = Favorites(user_id=user_id, characters_id=request_body["characters_id"])
 
-    return jsonify(favorites.serialize()), 200
+    if fav_characters is None:
+        db.session.add(fav_character)
+        db.session.commit()
+        return jsonify(fav_character.serialize()), 200
+
+    return jsonify({"msg":"El usuario seleccionado ya tiene ese favorito"}),404
 
 @app.route('/user/<int:user_id>/favorites/planets', methods=['DELETE'])
 def delete_planet(user_id):
